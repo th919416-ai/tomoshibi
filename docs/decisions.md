@@ -48,3 +48,4 @@ CLAUDE.md に書かれていない仕様を実装時に決めたものを、1行
 - 2026-11-19 運営のお題・手紙は scripts/content/*.py に書き、build.py で冪等な SQL（supabase/content/）にして入稿する。開発用 DB にも seed として流す。運営の手紙はすべて自動審査を通ることをテストで確認する。
 - 2026-11-19 [オーナー決定] 自分の手紙に届いた共感の数を、無料・全員に、翌日以降「自分の記録」で種類ごとに表示する。広場の他人の手紙には出さない。0 の種類は出さない。app_settings.show_own_reaction_counts / own_reaction_counts_delay_days で切り替え可能。
 - 2026-11-19 他の人に試してもらう用に、Web 版を EAS Hosting（https://tomoshibi.expo.app）で公開した。本番の Supabase につながる。通知・広告は Web 版では動かない。
+- 2026-11-19 本番 Supabase に moderate-answer / send-daily-question をデプロイし、CRON_SECRET・MODERATION_AI_PROVIDER=none を設定。お題は 2027-01-14 分まで、運営の手紙は 2026-12-15 分まで入稿済み。定期実行（pg_cron）はオーナーの判断でまだ設定しない（審査は投稿直後にアプリから呼ぶ）。
