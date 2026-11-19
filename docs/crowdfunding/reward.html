@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Serif;src:url(NotoSerifJP_400Regular.ttf)}
+@font-face{font-family:Sans;src:url(NotoSansJP_500Medium.ttf)}
+*{margin:0;box-sizing:border-box}
+:root{--night:#0E1420;--char:#1C1F26;--candle:#F2A65A;--ember:#E07B39;--paper:#F3EDE2;--muted:#A8A29A;--ink:#2a2620}
+body{width:1200px;height:900px;overflow:hidden;background:var(--night);color:var(--paper);font-family:Sans;position:relative}
+.glow{position:absolute;width:900px;height:900px;right:-160px;top:-40px;border-radius:50%;filter:blur(40px);background:radial-gradient(closest-side,rgba(224,123,57,.28),rgba(224,123,57,.06) 55%,transparent)}
+.left{position:absolute;left:80px;top:0;bottom:0;width:520px;display:flex;flex-direction:column;justify-content:center;gap:26px}
+.brand{font-size:20px;letter-spacing:.24em;color:var(--candle);display:flex;gap:12px;align-items:center}
+.brand i{width:8px;height:8px;border-radius:50%;background:var(--candle);box-shadow:0 0 14px 3px rgba(242,166,90,.7)}
+.price{font-family:Serif;font-size:96px;letter-spacing:.02em;line-height:1}
+.price span{font-size:40px;margin-left:6px}
+.name{font-family:Serif;font-size:44px;line-height:1.45}
+.list{display:flex;flex-direction:column;gap:12px;font-size:23px;line-height:1.5}
+.list div{display:flex;gap:12px}
+.list div::before{content:"";flex:none;width:8px;height:8px;margin-top:13px;border-radius:50%;background:var(--ember)}
+.when{font-size:20px;color:var(--muted);letter-spacing:.06em}
+.right{position:absolute;right:70px;top:0;bottom:0;width:520px;display:flex;align-items:center;justify-content:center}
+.note{position:absolute;right:28px;bottom:22px;font-size:16px;color:var(--muted)}
+/* 封筒 */
+.envelope{width:400px;height:270px;background:var(--paper);border-radius:10px;position:relative;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+.envelope::before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom right,transparent 49.6%,#d9cfbb 50%,transparent 50.4%),linear-gradient(to bottom left,transparent 49.6%,#d9cfbb 50%,transparent 50.4%);background-size:100% 100%}
+.seal{position:absolute;left:50%;top:44%;width:56px;height:56px;margin:-28px;border-radius:50%;background:var(--ember);box-shadow:0 0 30px rgba(224,123,57,.8)}
+/* 会員カード */
+.card{width:420px;height:265px;border-radius:22px;padding:30px;background:linear-gradient(135deg,#232836,#151a25);border:1px solid #3a3f4d;box-shadow:0 30px 60px rgba(0,0,0,.55),0 0 80px rgba(242,166,90,.18);display:flex;flex-direction:column;justify-content:space-between}
+.card .t{font-size:18px;letter-spacing:.3em;color:var(--candle)}
+.card .n{font-family:Serif;font-size:38px}
+.card .f{display:flex;gap:10px}
+.card .f b{font-weight:500;font-size:16px;border:1px solid #4a4f5d;border-radius:99px;padding:6px 14px;color:var(--paper)}
+/* ノート */
+.notebook{width:330px;height:440px;border-radius:6px 14px 14px 6px;background:#efe6d3;position:relative;box-shadow:0 30px 60px rgba(0,0,0,.55);padding:56px 40px 40px 58px;color:var(--ink);transform:rotate(-3deg)}
+.notebook::before{content:"";position:absolute;left:24px;top:0;bottom:0;width:4px;background:var(--ember)}
+.notebook .day{font-size:15px;letter-spacing:.2em;color:#9a7b55}
+.notebook .q{font-family:Serif;font-size:26px;line-height:1.6;margin:14px 0 22px}
+.notebook .lines{height:200px;background:repeating-linear-gradient(to bottom,transparent 0 33px,rgba(120,95,60,.3) 33px 34px)}
+/* 本 */
+.book{width:300px;height:420px;border-radius:4px 10px 10px 4px;background:linear-gradient(90deg,#141924 0,#1e2433 8%,#1C1F26 100%);position:relative;box-shadow:0 30px 60px rgba(0,0,0,.6),inset 0 0 0 1px #343a49;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transform:rotate(3deg)}
+.book .y{font-size:18px;letter-spacing:.4em;color:var(--candle)}
+.book .tt{font-family:Serif;font-size:36px;writing-mode:vertical-rl;letter-spacing:.16em;height:260px}
+.book .fl{width:14px;height:14px;border-radius:50%;background:var(--candle);box-shadow:0 0 22px 6px rgba(242,166,90,.6)}
+/* 問いカード */
+.qcard{width:440px;padding:46px 40px;border-radius:18px;background:var(--paper);color:var(--ink);box-shadow:0 30px 60px rgba(0,0,0,.55),0 0 90px rgba(242,166,90,.22)}
+.qcard .s{font-size:16px;letter-spacing:.2em;color:#9a7b55}
+.qcard .q{font-family:Serif;font-size:32px;line-height:1.6;margin-top:16px}
+.qcard .by{margin-top:22px;font-size:16px;color:#7a6f5f}
+</style></head><body><div class="glow"></div>
+<div class="left">
+  <div class="brand"><i></i>おいと間　リターン</div>
+  <div class="price" id="price"></div>
+  <div class="name" id="name"></div>
+  <div class="list" id="list"></div>
+  <div class="when" id="when"></div>
+</div>
+<div class="right" id="art"></div>
+<div class="note" id="note"></div>
+<script>
+const R={
+ 1:{price:'1,000',name:'お礼の手紙',list:['お礼のメール','公式サイトへのお名前の掲載（希望者のみ）'],when:'お届け：2027年1月',art:'<div class="envelope"><div class="seal"></div></div>'},
+ 2:{price:'3,000',name:'応援メンバー1年分',list:['広告なしで使える','自分の記録を書き出せる','アプリの運営を1年間支える'],when:'お届け：2027年1月（アプリ公開時）',art:'<div class="card"><div class="t">SUPPORTER</div><div class="n">おいと間<br>応援メンバー</div><div class="f"><b>広告なし</b><b>記録の書き出し</b></div></div>'},
+ 3:{price:'5,000',name:'1日1問ノート',list:['応援メンバー1年分','アプリと同じ問いが30日分','スマホを開かず、紙とペンで考える'],when:'お届け：2027年2月',note:'※ノートはイメージです',art:'<div class="notebook"><div class="day">DAY 01</div><div class="q">子どもの頃、一番<br>好きだった場所は？</div><div class="lines"></div></div>'},
+ 4:{price:'10,000',name:'1年の本',list:['応援メンバー1年分＋1日1問ノート','2027年に書いた自分の答えを1冊の本に','世界に1冊だけの、自分の言葉の本'],when:'お届け：2027年12月〜2028年1月',note:'※本はイメージです',art:'<div class="book"><div class="fl"></div><div class="tt">わたしの一年</div><div class="y">2027</div></div>'},
+ 5:{price:'30,000',name:'あなたの問いを、みんなへ',list:['上記すべて','あなたが考えた問いが、ある朝<br>利用者全員に届く（運営の確認あり）'],when:'配信：2027年6月までに',note:'※画面はイメージです',art:'<div class="qcard"><div class="s">今日の問い</div><div class="q">あなたが考えた<br>ひとつの問いが、<br>ある朝みんなに届く。</div><div class="by">名前は出しません</div></div>'},
+};
+const r=R[new URLSearchParams(location.search).get('t')];
+const $=id=>document.getElementById(id);$('price').innerHTML=r.price+'<span>円</span>';$('name').textContent=r.name;
+$('list').innerHTML=r.list.map(x=>'<div><span>'+x+'</span></div>').join('');$('when').textContent=r.when;$('art').innerHTML=r.art;$('note').textContent=r.note||'';
+</script></body></html>
