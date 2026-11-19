@@ -45,6 +45,18 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9cd32730-9678-4048-85d1-6ee47a9a3d7a"
+      }
+    },
+    "owner": "imoni91",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9cd32730-9678-4048-85d1-6ee47a9a3d7a"
     }
   }
 }
