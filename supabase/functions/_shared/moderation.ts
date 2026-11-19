@@ -2,7 +2,7 @@
  * 回答の自動審査（CLAUDE.md §6）。Deno（Edge Function）と Jest の両方から使えるよう、外部に依存しない。
  * 判定の順番: 自傷の兆候 → 個人情報 → NG ワード → AI 判定 → 承認
  */
-import { CRISIS_WORDS, NG_WORDS } from './ngwords.ts';
+import { CRISIS_KATAKANA_WORDS, CRISIS_WORDS, NG_KATAKANA_WORDS, NG_WORDS } from './ngwords.ts';
 
 export type RejectionReason = 'personal_info' | 'inappropriate' | 'other';
 
@@ -63,8 +63,25 @@ export function detectWords(raw: string, words: readonly string[]): string[] {
   return words.filter((w) => text.includes(compact(normalize(w))));
 }
 
+const KATAKANA = '\\u30a0-\\u30ff\\uff66-\\uff9f';
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * 短い語をカタカナ（または英字）のまま、前後がカタカナ・英字でない位置だけで探す。
+ * 「カスだ」は一致し、「カスタム」「アリスカ」は一致しない。ひらがな表記は対象にしない。
+ */
+export function detectKatakanaWords(raw: string, words: readonly string[]): string[] {
+  const text = raw.normalize('NFKC');
+  return words.filter((w) =>
+    new RegExp(`(^|[^${KATAKANA}A-Za-z])${escape(w)}($|[^${KATAKANA}A-Za-z])`, 'i').test(text),
+  );
+}
+
 export async function moderate(text: string, ai?: AiJudge): Promise<Verdict> {
-  const crisis = detectWords(text, CRISIS_WORDS);
+  const crisis = [
+    ...detectWords(text, CRISIS_WORDS),
+    ...detectKatakanaWords(text, CRISIS_KATAKANA_WORDS),
+  ];
   if (crisis.length) return { status: 'crisis', signals: crisis.map((w) => `crisis:${w}`) };
 
   const pii = detectPersonalInfo(text);
@@ -72,7 +89,7 @@ export async function moderate(text: string, ai?: AiJudge): Promise<Verdict> {
     return { status: 'rejected', reason: 'personal_info', signals: pii.map((k) => `pii:${k}`) };
   }
 
-  const ng = detectWords(text, NG_WORDS);
+  const ng = [...detectWords(text, NG_WORDS), ...detectKatakanaWords(text, NG_KATAKANA_WORDS)];
   if (ng.length)
     return { status: 'rejected', reason: 'inappropriate', signals: ng.map((w) => `ng:${w}`) };
 

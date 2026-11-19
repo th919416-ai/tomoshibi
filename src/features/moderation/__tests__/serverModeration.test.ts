@@ -1,4 +1,7 @@
 // Edge Function `moderate-answer` の判定ロジック（supabase/functions/_shared/moderation.ts）のテスト
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 import {
   detectPersonalInfo,
   detectWords,
@@ -44,12 +47,13 @@ describe('個人情報の検出（§6-2）', () => {
 });
 
 describe('自傷・希死念慮の兆候', () => {
-  it.each(['もう死にたいと思う夜がある', 'シニタイ', '消え た い', 'リスカをしてしまった'])(
-    '%s を検出する',
-    (text) => {
-      expect(detectWords(text, CRISIS_WORDS).length).toBeGreaterThan(0);
-    },
-  );
+  it.each(['もう死にたいと思う夜がある', 'シニタイ', '消え た い'])('%s を検出する', (text) => {
+    expect(detectWords(text, CRISIS_WORDS).length).toBeGreaterThan(0);
+  });
+
+  it.each(['リスカをしてしまった', '昨日ODした'])('%s は crisis', async (text) => {
+    await expect(moderate(text)).resolves.toMatchObject({ status: 'crisis' });
+  });
 });
 
 describe('moderate（判定の順番）', () => {
@@ -86,5 +90,48 @@ describe('moderate（判定の順番）', () => {
       throw new Error('timeout');
     };
     await expect(moderate(ok, failing)).resolves.toMatchObject({ status: 'pending' });
+  });
+});
+
+describe('普通の文章は弾かない（誤検知の防止）', () => {
+  it.each([
+    'そろそろ家に帰ろう、と思った夕方。かえろうかな、と独り言を言った。',
+    '風がかすかに吹いて、カーテンが揺れていた。',
+    '積み上げた本がくずれる音で目が覚めた日のこと。',
+    'カスタムしたノートを、カステラを食べながら眺めていた。',
+    'こころすっきりした朝だった。久しぶりによく眠れた気がする。',
+    '最近、副業を始めた友人の話を聞いて、少し勇気をもらった。',
+    'アリスかわいいね、と娘が絵本を見ながら言った夜のこと。',
+    'ブースの前で待っていたら、知らない人が席をゆずってくれた。',
+    '死ぬほど笑った日のことを、ときどき思い出す。',
+    'エロール・フリンの古い映画を、祖父と一緒に観た記憶がある。',
+  ])('%s', async (text) => {
+    await expect(moderate(text)).resolves.toEqual({ status: 'approved', signals: [] });
+  });
+
+  it('運営が用意した手紙（seed）はすべて承認される', async () => {
+    const seed = readFileSync(join(__dirname, '../../../../supabase/seed.sql'), 'utf8');
+    const bodies = [...seed.matchAll(/\('[^']+', '([^']{20,})'\)/g)].map((m) => m[1]!);
+    expect(bodies.length).toBe(60);
+    for (const body of bodies) {
+      const v = await moderate(body);
+      expect({ body, status: v.status }).toEqual({ body, status: 'approved' });
+    }
+  });
+});
+
+describe('悪口・性的な語は弾く', () => {
+  it.each([
+    'お前はほんとうにカスだな。何をやってもだめだと思う。',
+    'あいつはクズ。もう二度と顔も見たくないし話したくもない。',
+    'エロ画像を集めるのが趣味です。誰か一緒に見ませんか。',
+    'うざい人ばかりの職場で、毎日が本当にしんどいです。',
+    '死ねと思うくらい、あの人のことが許せなかった日がある。',
+    'シネ、と書いた紙を机に入れられたことがある。ひどいと思う。',
+  ])('%s', async (text) => {
+    await expect(moderate(text)).resolves.toMatchObject({
+      status: 'rejected',
+      reason: 'inappropriate',
+    });
   });
 });
