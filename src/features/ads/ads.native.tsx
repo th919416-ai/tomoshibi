@@ -1,15 +1,19 @@
-import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as TrackingTransparency from 'expo-tracking-transparency';
-import mobileAds, {
-  AdEventType,
-  AdsConsent,
-  BannerAd,
-  BannerAdSize,
-  InterstitialAd,
-  TestIds,
-} from 'react-native-google-mobile-ads';
+import { Platform } from 'react-native';
 
 import { adsConfig } from './config';
+
+/**
+ * 広告ライブラリはネイティブモジュールを含むため、Expo Go には入っていない。
+ * Expo Go で開いたとき（動作確認用）は広告を出さず、ライブラリも読み込まない。
+ */
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+type AdsLib = typeof import('react-native-google-mobile-ads');
+const lib: AdsLib | null = isExpoGo
+  ? null
+  : // eslint-disable-next-line @typescript-eslint/no-require-imports
+    (require('react-native-google-mobile-ads') as AdsLib);
 
 let initialized: Promise<boolean> | null = null;
 let personalized = false;
@@ -21,19 +25,20 @@ const useTestIds = __DEV__;
  * 拒否されても、非パーソナライズ広告で動く。
  */
 export function initAds(): Promise<boolean> {
-  if (!adsConfig.enabled) return Promise.resolve(false);
+  if (!adsConfig.enabled || !lib) return Promise.resolve(false);
+  const ads = lib;
   initialized ??= (async () => {
     try {
-      const consent = await AdsConsent.gatherConsent();
+      const consent = await ads.AdsConsent.gatherConsent();
       if (!consent.canRequestAds) return false;
       let tracking = true;
       if (Platform.OS === 'ios') {
         const { status } = await TrackingTransparency.requestTrackingPermissionsAsync();
         tracking = status === 'granted';
       }
-      const choices = await AdsConsent.getUserChoices().catch(() => null);
+      const choices = await ads.AdsConsent.getUserChoices().catch(() => null);
       personalized = tracking && (choices?.selectPersonalisedAds ?? false);
-      await mobileAds().initialize();
+      await ads.default().initialize();
       return true;
     } catch {
       return false;
@@ -46,7 +51,8 @@ const requestOptions = () => ({ requestNonPersonalizedAdsOnly: !personalized });
 
 /** 全画面広告を1回出す。読み込めなければ何もしない（待たせない） */
 export async function showInterstitial(): Promise<void> {
-  if (!(await initAds())) return;
+  if (!lib || !(await initAds())) return;
+  const { AdEventType, InterstitialAd, TestIds } = lib;
   const unitId =
     useTestIds || !adsConfig.interstitialUnitId
       ? TestIds.INTERSTITIAL
@@ -73,7 +79,8 @@ export async function showInterstitial(): Promise<void> {
 
 /** アーカイブ画面下部のバナー（§9） */
 export function AdBanner() {
-  if (!adsConfig.enabled) return null;
+  if (!adsConfig.enabled || !lib) return null;
+  const { BannerAd, BannerAdSize, TestIds } = lib;
   const unitId =
     useTestIds || !adsConfig.bannerUnitId ? TestIds.ADAPTIVE_BANNER : adsConfig.bannerUnitId;
   return (
