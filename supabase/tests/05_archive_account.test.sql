@@ -1,6 +1,6 @@
 -- ステップ7: アーカイブ・削除・設定・灯りのお知らせ・アカウント削除
 begin;
-select plan(16);
+select plan(20);
 
 update public.app_settings set allow_clock_override = true;
 create function pg_temp.as_user(u uuid) returns void language plpgsql as $$
@@ -32,8 +32,8 @@ select is(public.get_my_archive('2026-11') -> 'months', '["2026-11", "2026-10"]'
 select is(jsonb_array_length(public.get_my_archive('2026-11') -> 'entries'), 1, '月ごとに区切って返す');
 select is(public.get_my_archive('2026-10') -> 'entries' -> 0 ->> 'timer_minutes', '60', '考えた時間も残る');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.get_my_archive('2026-10') -> 'entries' -> 0) k),
-  array['answer_id', 'body', 'day_key', 'genre', 'question', 'status', 'timer_minutes'],
-  'アーカイブには他者の反応を含まない');
+  array['answer_id', 'body', 'day_key', 'genre', 'question', 'reactions', 'status', 'timer_minutes'],
+  'アーカイブには、誰が共感したかは含まない（自分の手紙の種類ごとの数だけ）');
 select throws_ok($$select public.get_my_archive('2026-13')$$, 'P0001', 'invalid_month', '不正な月は拒否');
 
 -- 灯りのお知らせ: 昨日（18日）の手紙に共感があれば、1度だけ
@@ -48,6 +48,27 @@ select pg_temp.as_user('11111111-1111-1111-1111-111111111111');
 select is((public.get_today_state() ->> 'show_glow_notice')::boolean, true, '共感があれば翌日お知らせする');
 select public.ack_glow_notice();
 select is((public.get_today_state() ->> 'show_glow_notice')::boolean, false, 'お知らせは1度だけ');
+
+-- 自分の手紙の共感の数（2026-11-19 オーナー決定）: 翌日以降、記録で種類ごとに見られる
+select is(public.get_my_archive('2026-11') -> 'entries' -> 0 -> 'reactions',
+  '{"hatto": 0, "wakaru": 0, "hokkori": 1}'::jsonb, '前日の自分の手紙は、種類ごとの共感数が見られる');
+reset role;
+insert into public.answers (user_id, question_id, day_key, body, status)
+select '11111111-1111-1111-1111-111111111111', id, day_key, '今日の問いへの、わたしの答えを書きました。', 'approved'
+from public.questions where day_key = '2026-11-19';
+insert into public.reactions (user_id, answer_id, type)
+select '22222222-2222-2222-2222-222222222222', id, 'wakaru' from public.answers where day_key = '2026-11-19';
+select pg_temp.as_user('11111111-1111-1111-1111-111111111111');
+select is(public.get_my_archive('2026-11') -> 'entries' -> 0 ->> 'reactions', null, '書いた当日の分は出さない');
+reset role;
+update public.app_settings set show_own_reaction_counts = false;
+select pg_temp.as_user('11111111-1111-1111-1111-111111111111');
+select is(public.get_my_archive('2026-11') -> 'entries' -> 1 ->> 'reactions', null, '設定でオフにできる');
+reset role;
+update public.app_settings set show_own_reaction_counts = true;
+select pg_temp.as_user('11111111-1111-1111-1111-111111111111');
+select throws_ok($$select public.own_reaction_counts('11111111-1111-1111-1111-111111111111', gen_random_uuid(), '2026-11-18')$$,
+  '42501', null, '共感数の内部関数は直接呼べない');
 
 -- 設定
 select is(public.update_my_settings(p_notify_question => true) ->> 'notify_question', 'true', 'お題通知をオンにできる');

@@ -139,6 +139,8 @@ export const ja = {
     prevMonth: '前の月',
     nextMonth: '次の月',
     thoughtFor: '{{label}}考えて',
+    reactionsTitle: '届いた共感',
+    reactionCount: '{{label}} {{count}}',
     delete: 'この記録を消す',
     deleteConfirm: 'この手紙を消しますか？ 届いた人の手元からも消えます。元には戻せません。',
     deleteDo: '消す',

@@ -2,6 +2,9 @@ import { callRpc } from '@/lib/rpc';
 
 import type { AnswerStatus, Genre } from '../today/types';
 
+/** 自分の手紙に届いた共感の数（翌日以降のみ。当日は null） */
+export type ReactionCounts = { wakaru: number; hokkori: number; hatto: number };
+
 export type ArchiveEntry = {
   answerId: string;
   dayKey: string;
@@ -10,6 +13,7 @@ export type ArchiveEntry = {
   body: string;
   status: AnswerStatus;
   timerMinutes: number | null;
+  reactions: ReactionCounts | null;
 };
 
 export type ArchiveMonth = { month: string; months: string[]; entries: ArchiveEntry[] };
@@ -25,6 +29,7 @@ type Raw = {
     body: string;
     status: AnswerStatus;
     timer_minutes: number | null;
+    reactions: ReactionCounts | null;
   }[];
 };
 
@@ -43,6 +48,7 @@ export async function fetchArchive(month: string): Promise<ArchiveMonth> {
       body: e.body,
       status: e.status,
       timerMinutes: e.timer_minutes,
+      reactions: e.reactions ?? null,
     })),
   };
 }

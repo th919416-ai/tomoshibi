@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { AdBanner } from '@/features/ads/ads';
+import { REACTION_TYPES } from '@/features/letters/api';
 import {
   archiveQueryKey,
   deleteMyAnswer,
@@ -114,6 +115,7 @@ export default function ArchiveScreen() {
                 {e.question}
               </AppText>
               <AppText variant="letter">{e.body}</AppText>
+              <ReactionSummary entry={e} />
               <Pressable
                 onPress={() => setDeleting(e)}
                 accessibilityRole="button"
@@ -143,6 +145,33 @@ export default function ArchiveScreen() {
         />
         <Button label={t('common.cancel')} variant="ghost" onPress={() => setDeleting(null)} />
       </Sheet>
+    </View>
+  );
+}
+
+/** 自分の手紙に届いた共感（翌日以降、種類ごと。0 の種類は出さない） */
+function ReactionSummary({ entry }: { entry: ArchiveEntry }) {
+  const { t } = useTranslation();
+  if (!entry.reactions) return null;
+  const parts = REACTION_TYPES.filter((type) => (entry.reactions?.[type] ?? 0) > 0).map((type) =>
+    t('archive.reactionCount', {
+      label: t(`letters.reaction.${type}`),
+      count: entry.reactions?.[type] ?? 0,
+    }),
+  );
+  if (!parts.length) return null;
+  return (
+    <View
+      style={styles.reactions}
+      accessible
+      accessibilityLabel={`${t('archive.reactionsTitle')}　${parts.join('、')}`}
+    >
+      <AppText variant="caption" tone="candle">
+        {t('archive.reactionsTitle')}
+      </AppText>
+      <AppText variant="caption" tone="muted" style={styles.counts}>
+        {parts.join('　')}
+      </AppText>
     </View>
   );
 }
@@ -187,4 +216,6 @@ const styles = StyleSheet.create({
   },
   meta: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   delete: { alignSelf: 'flex-start', minHeight: MIN_TOUCH_TARGET, justifyContent: 'center' },
+  reactions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md, alignItems: 'center' },
+  counts: { fontVariant: ['tabular-nums'] },
 });
