@@ -4,7 +4,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const CHUNK_SIZE = 100; // Expo Push API の1回あたりの上限
-const MESSAGE = { title: 'ともしび', body: '今日の問いが届きました' };
+const MESSAGE = { title: 'おいと間', body: '今日の問いが届きました' };
 
 Deno.serve(async (req) => {
   const secret = Deno.env.get('CRON_SECRET');

@@ -18,7 +18,12 @@ export function Header({ links = [], back = false }: { links?: Link[]; back?: bo
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         />
       ) : (
-        <View style={styles.brand} accessible accessibilityRole="header">
+        <View
+          style={styles.brand}
+          accessible
+          accessibilityRole="header"
+          accessibilityLabel={t('common.appNameReading')}
+        >
           <View style={styles.flame} />
           <AppText variant="label">{t('common.appName')}</AppText>
         </View>

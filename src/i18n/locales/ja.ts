@@ -1,7 +1,9 @@
 /** 日本語（初期リリースは日本語のみ。§1） */
 export const ja = {
   common: {
-    appName: 'ともしび',
+    appName: 'おいと間',
+    /** 読み上げ用（「間」を「ま」と読ませる） */
+    appNameReading: 'おいとま',
     retry: 'もう一度試す',
     back: '戻る',
     close: '閉じる',
@@ -200,7 +202,7 @@ export const ja = {
     pageA11y: '{{current}} / {{total}}',
   },
   notifications: {
-    timerTitle: 'ともしび',
+    timerTitle: 'おいと間',
     timerBody: '考える時間が終わりました。言葉にしてみませんか',
   },
   errors: {

@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const projectId = process.env.EAS_PROJECT_ID;
   return {
     ...config,
-    name: config.name ?? 'ともしび',
+    name: config.name ?? 'おいと間',
     slug: config.slug ?? 'tomoshibi',
     extra: {
       ...config.extra,

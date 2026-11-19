@@ -10,7 +10,7 @@ function leaves(obj: object, prefix = ''): [string, unknown][] {
 describe('i18n', () => {
   it('日本語で初期化される', () => {
     expect(i18n.language).toBe('ja');
-    expect(i18n.t('common.appName')).toBe('ともしび');
+    expect(i18n.t('common.appName')).toBe('おいと間');
   });
 
   it('すべての文言が空でない文字列', () => {
