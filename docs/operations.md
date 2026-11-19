@@ -54,7 +54,11 @@ insert into public.questions (day_key, genre, body) values
 -- genre: discovery / memory / values / imagine / senses
 ```
 
-手紙が足りない日のための運営の回答（seed）:
+まとめて入稿するときは、`scripts/content/` の Python ファイルにお題や手紙を書き、
+`python3 scripts/content/build.py` で `supabase/content/*.sql` を作って SQL Editor で流します（何度流しても重複しません）。
+手紙は `npm test` で自動審査を通るかも確かめられます。
+
+1件ずつ入れるとき（手紙が足りない日のための運営の回答・seed）:
 
 ```sql
 insert into public.answers (user_id, question_id, day_key, body, status, is_seed)

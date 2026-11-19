@@ -109,10 +109,13 @@ describe('普通の文章は弾かない（誤検知の防止）', () => {
     await expect(moderate(text)).resolves.toEqual({ status: 'approved', signals: [] });
   });
 
-  it('運営が用意した手紙（seed）はすべて承認される', async () => {
-    const seed = readFileSync(join(__dirname, '../../../../supabase/seed.sql'), 'utf8');
+  it('運営が用意した手紙（seed）は、すべて自動審査を通る', async () => {
+    const root = join(__dirname, '../../../../supabase');
+    const seed = ['seed.sql', 'content/002_letters_2026-11-21_to_12-15.sql']
+      .map((f) => readFileSync(join(root, f), 'utf8'))
+      .join('\n');
     const bodies = [...seed.matchAll(/\('[^']+', '([^']{20,})'\)/g)].map((m) => m[1]!);
-    expect(bodies.length).toBe(60);
+    expect(bodies.length).toBe(60 + 250);
     for (const body of bodies) {
       const v = await moderate(body);
       expect({ body, status: v.status }).toEqual({ body, status: 'approved' });
